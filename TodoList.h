@@ -12,7 +12,7 @@ private:
 public:
     // Methods to manage activities
     void addActivity(const Activity& activity);
-    void removeActivity(size_t index);
+    void removeActivity(size_t index, bool skipConfirmation = false);
     void markActivityAsCompleted(size_t index);
     void displayActivities() const;
 

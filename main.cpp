@@ -8,7 +8,7 @@ int main() {
     std::string defaultFilename = "tasks.txt";
     todoList.loadFromFile(defaultFilename);
     std::cout << "Loaded tasks from " << defaultFilename << std::endl;
-    
+
     int choice;
 
     do {
@@ -52,7 +52,7 @@ int main() {
                 size_t index;
                 std::cout << "Enter activity number to remove: ";
                 std::cin >> index;
-                todoList.removeActivity(index - 1);
+                todoList.removeActivity(index - 1);  // Non passiamo true, così chiede conferma
                 break;
             }
             case 3:

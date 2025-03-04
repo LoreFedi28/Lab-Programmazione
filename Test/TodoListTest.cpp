@@ -23,7 +23,7 @@ TEST(TodoListTest, AddAndRemoveActivity) {
     EXPECT_EQ("First Activity", todoList.getActivities()[0].getDescription());
     EXPECT_EQ("Second Activity", todoList.getActivities()[1].getDescription());
 
-    todoList.removeActivity(0);
+    todoList.removeActivity(0, true); // Saltiamo la conferma durante i test
     ASSERT_EQ(1, todoList.getActivities().size());
     EXPECT_EQ("Second Activity", todoList.getActivities()[0].getDescription());
 }

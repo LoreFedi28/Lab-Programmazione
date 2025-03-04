@@ -8,9 +8,23 @@ void TodoList::addActivity(const Activity& activity) {
     activities.push_back(activity);
 }
 
-void TodoList::removeActivity(size_t index) {
+void TodoList::removeActivity(size_t index, bool skipConfirmation) {
     if (index < activities.size()) {
+        if (!skipConfirmation) {  // Se siamo in un test, saltiamo la conferma
+            std::cout << "Are you sure you want to delete '"
+                      << activities[index].getDescription()
+                      << "'? (y/n): ";
+            char confirm;
+            std::cin >> confirm;
+            if (confirm != 'y' && confirm != 'Y') {
+                std::cout << "Deletion canceled.\n";
+                return;
+            }
+        }
         activities.erase(activities.begin() + index);
+        std::cout << "Activity deleted.\n";
+    } else {
+        std::cerr << "Invalid index!\n";
     }
 }
 
