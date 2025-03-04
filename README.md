@@ -5,14 +5,15 @@ This is a C++ project that implements a simple Todo List application. The applic
 ## Features
 
 - **Activity Management**:
-  - Add activities with descriptions.
+  - Add activities with descriptions and due dates.
   - Mark activities as completed or not completed.
-  - Remove activities by index.
-  - Display all activities with their statuses.
+  - Remove activities by index with confirmation.
+  - Display all activities with their statuses, sorted by due date.
 
 - **File Operations**:
   - Save activities to a file in a serialized format.
   - Load activities from a file, restoring the list.
+  - Automatically load activities from the last saved file at startup.
 
 - **Unit Testing**:
   - Comprehensive tests for `Activity` and `TodoList` classes using Google Test.
@@ -28,12 +29,13 @@ This is a C++ project that implements a simple Todo List application. The applic
 - `Test/TodoListTest.cpp`: Unit tests using Google Test for key functionalities:
   - Serialization and deserialization of activities.
   - Adding and removing activities in the list.
+  - Marking activities as completed.
   - Saving and loading activities from files.
 
 ## How to Build and Run
 
 ### Prerequisites
-- A C++ compiler supporting C++11 or higher (e.g., g++, clang++)
+- A C++ compiler supporting C++17 or higher (e.g., g++, clang++)
 - CMake (optional but recommended for building)
 - Google Test (for running unit tests)
 
@@ -45,36 +47,35 @@ This is a C++ project that implements a simple Todo List application. The applic
    cd <repository-folder>
    ```
 
-2. Compile the source code:
+2. Compile the source code using CMake:
    ```bash
-   g++ main.cpp Activity.cpp TodoList.cpp -o TodoListApp
+   mkdir -p cmake-build-debug
+   cd cmake-build-debug
+   cmake ..
+   cmake --build .
    ```
 
 3. Run the application:
    ```bash
-   ./TodoListApp
+   ./LabProgrammazione
    ```
 
 ### Run Tests
 
 1. Compile the test suite:
    ```bash
-   g++ -std=c++11 -I/path/to/gtest/include -L/path/to/gtest/lib Test/TodoListTest.cpp Activity.cpp TodoList.cpp -lgtest -lgtest_main -pthread -o TodoListTest
-   ```
-
-2. Run the tests:
-   ```bash
-   ./TodoListTest
+   ./runLabProgrammazioneTest
    ```
 
 ## Usage
 
 1. Run the application.
 2. Use the menu to interact with the Todo List:
-   - Add a new activity by entering a description.
-   - Remove an activity by specifying its number.
-   - Display the list of activities.
+   - Add a new activity by entering a description and a due date.
+   - Remove an activity by specifying its number (confirmation required).
+   - Display the list of activities, sorted by due date.
    - Save or load activities using file names.
+   - Mark an activity as completed.
 
 ## Example Interaction
 
@@ -85,18 +86,21 @@ Todo List
 3. Display Activities
 4. Save to File
 5. Load from File
+6. Mark Activity as Completed
 0. Exit
 Choose an option: 1
 Enter activity description: Complete the C++ project
+Enter due date (YYYY-MM-DD HH:MM): 2025-03-10 15:00
 Todo List
 1. Add Activity
 2. Remove Activity
 3. Display Activities
 4. Save to File
 5. Load from File
+6. Mark Activity as Completed
 0. Exit
 Choose an option: 3
-1. Complete the C++ project [Not Done]
+1. Complete the C++ project [Not Done] (Due: Mon Mar 10 15:00:00 2025)
 ```
 
 ## Author
