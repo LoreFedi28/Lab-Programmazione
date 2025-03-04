@@ -3,6 +3,8 @@ project(LabProgrammazione)
 
 set(CMAKE_CXX_STANDARD 17)
 
+add_subdirectory(Test)
+
 add_executable(LabProgrammazione main.cpp
         Activity.cpp
         Activity.h
@@ -11,3 +13,5 @@ add_executable(LabProgrammazione main.cpp
         Test/TodoListTest.cpp
         Test/runAllTests.cpp
 )
+
+target_link_libraries(LabProgrammazione gtest gtest_main)
