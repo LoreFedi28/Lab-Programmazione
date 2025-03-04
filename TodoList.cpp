@@ -1,6 +1,7 @@
 #include "TodoList.h"
 #include <iostream>
 #include <fstream>
+#include <ctime>
 
 void TodoList::addActivity(const Activity& activity) {
     activities.push_back(activity);

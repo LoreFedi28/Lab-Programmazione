@@ -1,5 +1,6 @@
 #include "TodoList.h"
 #include <iostream>
+#include <iomanip>
 #include <limits>
 
 int main() {
@@ -26,11 +27,21 @@ int main() {
 
         switch (choice) {
             case 1: {
-                std::cin.ignore(); // Clear input buffer
+                std::cin.ignore();
                 std::string description;
                 std::cout << "Enter activity description: ";
                 std::getline(std::cin, description);
-                todoList.addActivity(Activity(description));
+
+                std::cout << "Enter due date (YYYY-MM-DD HH:MM): ";
+                std::string dueDateStr;
+                std::getline(std::cin, dueDateStr);
+
+                std::tm tm = {};
+                std::istringstream ss(dueDateStr);
+                ss >> std::get_time(&tm, "%Y-%m-%d %H:%M");
+                std::time_t dueDate = std::mktime(&tm);
+
+                todoList.addActivity(Activity(description, false, dueDate));
                 break;
             }
             case 2: {
