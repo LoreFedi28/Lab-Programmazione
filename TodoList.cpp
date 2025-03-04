@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <ctime>
+#include <algorithm>
 
 void TodoList::addActivity(const Activity& activity) {
     activities.push_back(activity);
@@ -22,12 +23,20 @@ void TodoList::markActivityAsCompleted(size_t index) {
 }
 
 void TodoList::displayActivities() const {
-    for (size_t i = 0; i < activities.size(); ++i) {
-        std::cout << i + 1 << ". " << activities[i].getDescription()
-                  << " [" << (activities[i].isCompleted() ? "Done" : "Not Done") << "]\n";
+    std::vector<Activity> sortedActivities = activities;
+    std::sort(sortedActivities.begin(), sortedActivities.end(),
+        [](const Activity& a, const Activity& b) {
+            return a.getDueDate() < b.getDueDate();
+        }
+    );
+
+    for (size_t i = 0; i < sortedActivities.size(); ++i) {
+        std::time_t dueDate = sortedActivities[i].getDueDate();
+        std::cout << i + 1 << ". " << sortedActivities[i].getDescription()
+                  << " [" << (sortedActivities[i].isCompleted() ? "Done" : "Not Done") << "]"
+                  << " (Due: " << std::ctime(&dueDate) << ")\n";
     }
 }
-
 void TodoList::saveToFile(const std::string& filename) const {
     std::ofstream file(filename);
     if (!file) { // Controllo apertura file

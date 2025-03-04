@@ -5,6 +5,10 @@
 
 int main() {
     TodoList todoList;
+    std::string defaultFilename = "tasks.txt";
+    todoList.loadFromFile(defaultFilename);
+    std::cout << "Loaded tasks from " << defaultFilename << std::endl;
+    
     int choice;
 
     do {
