@@ -18,6 +18,8 @@ public:
     // File operations
     void saveToFile(const std::string& filename) const;
     void loadFromFile(const std::string& filename);
+
+    const std::vector<Activity>& getActivities() const { return activities; }
 };
 
 #endif

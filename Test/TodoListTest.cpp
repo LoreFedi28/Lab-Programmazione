@@ -44,8 +44,3 @@ TEST(TodoListTest, SaveAndLoadFromFile) {
     EXPECT_EQ("Activity 2", loadedList.getActivities()[1].getDescription());
     EXPECT_TRUE(loadedList.getActivities()[1].isCompleted());
 }
-
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}

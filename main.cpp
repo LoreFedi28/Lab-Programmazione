@@ -1,5 +1,6 @@
 #include "TodoList.h"
 #include <iostream>
+#include <limits>
 
 int main() {
     TodoList todoList;
@@ -14,7 +15,13 @@ int main() {
         std::cout << "5. Load from File\n";
         std::cout << "0. Exit\n";
         std::cout << "Choose an option: ";
-        std::cin >> choice;
+        if (!(std::cin >> choice)) {
+            std::cin.clear(); // Resetta lo stato di errore
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Pulisce il buffer
+            std::cout << "Invalid input. Please enter a number.\n";
+            continue;
+        }
+
 
         switch (choice) {
             case 1: {

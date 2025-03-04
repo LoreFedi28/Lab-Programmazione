@@ -4,6 +4,6 @@ add_subdirectory(./lib/googletest)
 set(gtest_SOURCE_DIR, ./lib/googletest)
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
-set(TEST_SOURCE_FILES runAllTests.cpp TodoListTest.cpp)
+set(TEST_SOURCE_FILES runAllTests.cpp TodoListTest.cpp ../Activity.cpp ../TodoList.cpp)
 add_executable(runLabProgrammazioneTest ${TEST_SOURCE_FILES})
-target_link_libraries(runLabProgrammazioneTest gtest gtest_main core)
+target_link_libraries(runLabProgrammazioneTest gtest gtest_main)
