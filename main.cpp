@@ -13,6 +13,7 @@ int main() {
         std::cout << "3. Display Activities\n";
         std::cout << "4. Save to File\n";
         std::cout << "5. Load from File\n";
+        std::cout << "6. Mark Activity as Completed\n";
         std::cout << "0. Exit\n";
         std::cout << "Choose an option: ";
         if (!(std::cin >> choice)) {
@@ -54,6 +55,13 @@ int main() {
                 std::cout << "Enter filename: ";
                 std::cin >> filename;
                 todoList.loadFromFile(filename);
+                break;
+            }
+            case 6: {
+                size_t index;
+                std::cout << "Enter activity number to mark as completed: ";
+                std::cin >> index;
+                todoList.markActivityAsCompleted(index - 1);
                 break;
             }
             case 0:

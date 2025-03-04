@@ -12,6 +12,14 @@ void TodoList::removeActivity(size_t index) {
     }
 }
 
+void TodoList::markActivityAsCompleted(size_t index) {
+    if (index < activities.size()) {
+        activities[index].setCompleted(true);
+    } else {
+        std::cerr << "Invalid index!\n";
+    }
+}
+
 void TodoList::displayActivities() const {
     for (size_t i = 0; i < activities.size(); ++i) {
         std::cout << i + 1 << ". " << activities[i].getDescription()
