@@ -5,13 +5,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 add_subdirectory(Test)
 
-add_executable(LabProgrammazione main.cpp
-        Activity.cpp
-        Activity.h
-        TodoList.cpp
-        TodoList.h
-        Test/TodoListTest.cpp
-        Test/runAllTests.cpp
-)
+# Eseguibile principale (solo il programma)
+add_executable(LabProgrammazione main.cpp Activity.cpp TodoList.cpp)
 
-target_link_libraries(LabProgrammazione gtest gtest_main)
+# Linkiamo Google Test ai test
+target_link_libraries(runLabProgrammazioneTest gtest gtest_main)
