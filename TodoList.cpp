@@ -4,13 +4,15 @@
 #include <ctime>
 #include <algorithm>
 
+// Adds a new activity to the list
 void TodoList::addActivity(const Activity& activity) {
     activities.push_back(activity);
 }
 
+// Removes an activity by index, with an optional confirmation
 void TodoList::removeActivity(size_t index, bool skipConfirmation) {
     if (index < activities.size()) {
-        if (!skipConfirmation) {  // Se siamo in un test, saltiamo la conferma
+        if (!skipConfirmation) {  // If we are in a test, we skip the confirmation
             std::cout << "Are you sure you want to delete '"
                       << activities[index].getDescription()
                       << "'? (y/n): ";
@@ -28,6 +30,7 @@ void TodoList::removeActivity(size_t index, bool skipConfirmation) {
     }
 }
 
+// Marks an activity as completed
 void TodoList::markActivityAsCompleted(size_t index) {
     if (index < activities.size()) {
         activities[index].setCompleted(true);
@@ -36,6 +39,7 @@ void TodoList::markActivityAsCompleted(size_t index) {
     }
 }
 
+// Displays all activities, sorted by due date
 void TodoList::displayActivities() const {
     std::vector<Activity> sortedActivities = activities;
     std::sort(sortedActivities.begin(), sortedActivities.end(),
@@ -51,9 +55,11 @@ void TodoList::displayActivities() const {
                   << " (Due: " << std::ctime(&dueDate) << ")\n";
     }
 }
+
+// Saves the activities to a file
 void TodoList::saveToFile(const std::string& filename) const {
     std::ofstream file(filename);
-    if (!file) { // Controllo apertura file
+    if (!file) { // File opening check
         std::cerr << "Error opening file for writing: " << filename << std::endl;
         return;
     }
@@ -63,11 +69,11 @@ void TodoList::saveToFile(const std::string& filename) const {
     }
 }
 
+// Loads activities from a file
 void TodoList::loadFromFile(const std::string& filename) {
     std::ifstream file(filename);
-    if (!file) { // Controllo apertura file
-        std::cerr << "Error opening file for reading: " << filename << std::endl;
-        return;
+    if (!file) {
+        throw std::runtime_error("Error opening file: " + filename);
     }
 
     activities.clear();

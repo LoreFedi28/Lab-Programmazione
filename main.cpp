@@ -6,7 +6,7 @@
 int main() {
     TodoList todoList;
     std::string defaultFilename = "tasks.txt";
-    todoList.loadFromFile(defaultFilename);
+    todoList.loadFromFile(defaultFilename); // Load tasks from file at startup
     std::cout << "Loaded tasks from " << defaultFilename << std::endl;
 
     int choice;
@@ -22,8 +22,8 @@ int main() {
         std::cout << "0. Exit\n";
         std::cout << "Choose an option: ";
         if (!(std::cin >> choice)) {
-            std::cin.clear(); // Resetta lo stato di errore
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Pulisce il buffer
+            std::cin.clear(); // Reset error state
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Clear input buffer
             std::cout << "Invalid input. Please enter a number.\n";
             continue;
         }
@@ -31,7 +31,7 @@ int main() {
 
         switch (choice) {
             case 1: {
-                std::cin.ignore();
+                std::cin.ignore(); // Clear input buffer
                 std::string description;
                 std::cout << "Enter activity description: ";
                 std::getline(std::cin, description);
@@ -42,8 +42,8 @@ int main() {
 
                 std::tm tm = {};
                 std::istringstream ss(dueDateStr);
-                ss >> std::get_time(&tm, "%Y-%m-%d %H:%M");
-                std::time_t dueDate = std::mktime(&tm);
+                ss >> std::get_time(&tm, "%Y-%m-%d %H:%M"); // Convert string to time structure
+                std::time_t dueDate = std::mktime(&tm); // Convert to timestamp
 
                 todoList.addActivity(Activity(description, false, dueDate));
                 break;
@@ -52,7 +52,7 @@ int main() {
                 size_t index;
                 std::cout << "Enter activity number to remove: ";
                 std::cin >> index;
-                todoList.removeActivity(index - 1);  // Non passiamo true, così chiede conferma
+                todoList.removeActivity(index - 1);  // We don't pass true, so it asks for confirmation
                 break;
             }
             case 3:
