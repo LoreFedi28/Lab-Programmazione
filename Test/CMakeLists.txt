@@ -5,7 +5,8 @@ set(gtest_SOURCE_DIR, ./lib/googletest)
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
 # List of source files for the test executable
-set(TEST_SOURCE_FILES runAllTests.cpp TodoListTest.cpp ../Activity.cpp ../TodoList.cpp)
+set(TEST_SOURCE_FILES runAllTests.cpp TodoListTest.cpp ../Activity.cpp ../TodoList.cpp
+        MockObserver.h)
 
 # Create test executable
 add_executable(runLabProgrammazioneTest ${TEST_SOURCE_FILES})

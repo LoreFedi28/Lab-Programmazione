@@ -4,15 +4,33 @@
 #include <ctime>
 #include <algorithm>
 
-// Adds a new activity to the list
-void TodoList::addActivity(const Activity& activity) {
-    activities.push_back(activity);
+// Adds an observer to the list
+void TodoList::addObserver(Observer* observer) {
+    observers.push_back(observer);
 }
 
-// Removes an activity by index, with an optional confirmation
+// Removes an observer from the list
+void TodoList::removeObserver(Observer* observer) {
+    observers.erase(std::remove(observers.begin(), observers.end(), observer), observers.end());
+}
+
+// Notifies all observers when a change occurs
+void TodoList::notifyObservers() {
+    for (Observer* observer : observers) {
+        observer->update(); // Calls update() on each observer
+    }
+}
+
+// Adds a new activity and notifies observers
+void TodoList::addActivity(const Activity& activity) {
+    activities.push_back(activity);
+    notifyObservers(); // Notify observers when a new activity is added
+}
+
+// Removes an activity and notifies observers
 void TodoList::removeActivity(size_t index, bool skipConfirmation) {
     if (index < activities.size()) {
-        if (!skipConfirmation) {  // If we are in a test, we skip the confirmation
+        if (!skipConfirmation) { // If not skipping confirmation, ask the user
             std::cout << "Are you sure you want to delete '"
                       << activities[index].getDescription()
                       << "'? (y/n): ";
@@ -24,16 +42,17 @@ void TodoList::removeActivity(size_t index, bool skipConfirmation) {
             }
         }
         activities.erase(activities.begin() + index);
-        std::cout << "Activity deleted.\n";
+        notifyObservers(); // Notify observers after removal
     } else {
         std::cerr << "Invalid index!\n";
     }
 }
 
-// Marks an activity as completed
+// Marks an activity as completed and notifies observers
 void TodoList::markActivityAsCompleted(size_t index) {
     if (index < activities.size()) {
         activities[index].setCompleted(true);
+        notifyObservers(); // Notify observers when an activity is marked as completed
     } else {
         std::cerr << "Invalid index!\n";
     }
@@ -50,9 +69,14 @@ void TodoList::displayActivities() const {
 
     for (size_t i = 0; i < sortedActivities.size(); ++i) {
         std::time_t dueDate = sortedActivities[i].getDueDate();
+
+        // Convert time to string and remove the newline at the end
+        std::string dueDateStr = std::ctime(&dueDate);
+        dueDateStr.erase(dueDateStr.find_last_not_of("\n") + 1);  // Remove trailing newline
+
         std::cout << i + 1 << ". " << sortedActivities[i].getDescription()
                   << " [" << (sortedActivities[i].isCompleted() ? "Done" : "Not Done") << "]"
-                  << " (Due: " << std::ctime(&dueDate) << ")\n";
+                  << " (Due: " << dueDateStr << ")\n"; // Corrected: no unwanted line break
     }
 }
 
@@ -69,7 +93,7 @@ void TodoList::saveToFile(const std::string& filename) const {
     }
 }
 
-// Loads activities from a file
+// Loads activities from a file and notifies observers
 void TodoList::loadFromFile(const std::string& filename) {
     std::ifstream file(filename);
     if (!file) {
@@ -81,4 +105,5 @@ void TodoList::loadFromFile(const std::string& filename) {
     while (std::getline(file, line)) {
         activities.push_back(Activity::deserialize(line));
     }
+    notifyObservers(); // Notify observers after loading new activities
 }

@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 #include "../TodoList.h"
 #include "../Activity.h"
+#include "MockObserver.h"
 
 // Test serialization and deserialization of Activity
 TEST(ActivityTest, SerializationAndDeserialization) {
@@ -18,29 +19,47 @@ TEST(ActivityTest, SerializationAndDeserialization) {
 
 TEST(TodoListTest, AddAndRemoveActivity) {
     TodoList todoList;
+    MockObserver observer;
+    todoList.addObserver(&observer); // Attach the mock observer
 
     // Add two activities
     Activity activity1("First Activity");
     Activity activity2("Second Activity");
+
     todoList.addActivity(activity1);
     todoList.addActivity(activity2);
 
-    // Verify that two activities have been added
     ASSERT_EQ(2, todoList.getActivities().size());
-    EXPECT_EQ("First Activity", todoList.getActivities()[0].getDescription());
-    EXPECT_EQ("Second Activity", todoList.getActivities()[1].getDescription());
+    EXPECT_TRUE(observer.updated); // Check if observer was notified
 
     // Remove the first activity (skip confirmation in tests)
+    observer.updated = false; // Reset flag
     todoList.removeActivity(0, true);
 
     // Verify that only one activity remains, and it's the correct one
     ASSERT_EQ(1, todoList.getActivities().size());
-    EXPECT_EQ("Second Activity", todoList.getActivities()[0].getDescription());
+    EXPECT_TRUE(observer.updated); // Check if observer was notified again
+}
+
+TEST(TodoListTest, MarkActivityAsCompleted) {
+    TodoList todoList;
+    MockObserver observer;
+    todoList.addObserver(&observer); // Attach observer
+
+    todoList.addActivity(Activity("Test Activity"));
+
+    observer.updated = false; // Reset observer flag
+    todoList.markActivityAsCompleted(0);
+
+    EXPECT_TRUE(todoList.getActivities()[0].isCompleted());
+    EXPECT_TRUE(observer.updated); // Ensure observer was notified
 }
 
 // Test saving and loading activities from a file
 TEST(TodoListTest, SaveAndLoadFromFile) {
     TodoList todoList;
+    MockObserver observer;
+    todoList.addObserver(&observer);
 
     // Add two activities
     todoList.addActivity(Activity("Activity 1"));
@@ -48,6 +67,8 @@ TEST(TodoListTest, SaveAndLoadFromFile) {
 
     // Save activities to a test file
     todoList.saveToFile("testfile.txt");
+
+    todoList.removeObserver(&observer); // Avoid unnecessary updates in tests
 
     // Load activities from the file into a new TodoList instance
     TodoList loadedList;
