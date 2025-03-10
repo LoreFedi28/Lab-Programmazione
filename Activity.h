@@ -12,20 +12,20 @@ private:
 
 public:
     // Constructor with default parameters
-    Activity(const std::string& desc, bool comp = false, time_t date = 0);
+    explicit Activity(const std::string& desc, bool comp = false, time_t date = 0);
 
     // Getters for retrieving activity details
-    std::string getDescription() const;
-    bool isCompleted() const;
+    [[nodiscard]] std::string getDescription() const;
+    [[nodiscard]] bool isCompleted() const;
 
     // Setters for modifying activity details
     void setDescription(const std::string& desc);
     void setCompleted(bool comp);
     void setDueDate(time_t date);
-    time_t getDueDate() const;
+    [[nodiscard]] time_t getDueDate() const;
 
     // Methods for saving and loading activities as strings
-    std::string serialize() const;
+    [[nodiscard]] std::string serialize() const;
     static Activity deserialize(const std::string& data);
 };
 

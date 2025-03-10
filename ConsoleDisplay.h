@@ -14,7 +14,7 @@ public:
         todoList.addObserver(this); // Register this class as an observer
     }
 
-    ~ConsoleDisplay() {
+    ~ConsoleDisplay() override {
         todoList.removeObserver(this); // Unregister observer when destroyed
     }
 

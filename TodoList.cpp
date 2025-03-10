@@ -72,7 +72,7 @@ void TodoList::displayActivities() const {
 
         // Convert time to string and remove the newline at the end
         std::string dueDateStr = std::ctime(&dueDate);
-        dueDateStr.erase(dueDateStr.find_last_not_of("\n") + 1);  // Remove trailing newline
+        dueDateStr.erase(dueDateStr.find_last_not_of('\n') + 1);  // Remove trailing newline
 
         std::cout << i + 1 << ". " << sortedActivities[i].getDescription()
                   << " [" << (sortedActivities[i].isCompleted() ? "Done" : "Not Done") << "]"

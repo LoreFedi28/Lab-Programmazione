@@ -7,7 +7,6 @@ add_subdirectory(Test)
 
 # Main executable (application)
 add_executable(LabProgrammazione main.cpp Activity.cpp TodoList.cpp
-        Observer.cpp
         Observer.h
         ConsoleDisplay.h)
 
