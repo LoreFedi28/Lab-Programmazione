@@ -2,6 +2,7 @@
 #include "ConsoleDisplay.h"
 #include <iostream>
 #include <iomanip>
+#include <sstream>
 #include <limits>
 #include <exception> // Needed for handling exceptions
 
