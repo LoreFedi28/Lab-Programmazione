@@ -37,8 +37,8 @@ public:
     void addActivity(const Activity& activity);
     // Removes an activity by index (if numeric) or by name and notifies observers
     void removeActivity(const std::string& identifier, bool skipConfirmation = false);
-    // Marks an activity as completed and notifies observers
-    void markActivityAsCompleted(size_t index);
+    // Marks an activity as completed by index or name and notifies observers
+    void markActivityAsCompleted(const std::string& identifier);
     // Edits an activity's details (description, completion status, due date)
     void editActivity(size_t index);
     // Displays all activities sorted by due date

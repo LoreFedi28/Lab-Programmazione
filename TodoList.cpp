@@ -86,33 +86,67 @@ void TodoList::addActivity(const Activity& activity) {
     notifyObservers(); // Notify observers when a new activity is added
 }
 
-// Removes an activity by index (if numeric) or by name and notifies observers
 void TodoList::removeActivity(const std::string& identifier, bool skipConfirmation) {
-    size_t index = activities.size(); // Initialize with an out-of-range value
-
-    // Check if the input is a number (index) or a string (activity name)
-    try {
-        index = std::stoul(identifier); // Try converting to a number
-        if (index >= activities.size()) {
-            throw std::out_of_range("Error: Activity index is out of range!");
-        }
-    } catch (const std::invalid_argument&) {
-        // If conversion fails, search for an activity by name
-        auto it = std::find_if(activities.begin(), activities.end(), [&](const Activity& a) {
-            return a.getDescription() == identifier;
-        });
-
-        if (it == activities.end()) {
-            std::cerr << "Error: Activity not found!\n";
-            return;
-        }
-
-        index = std::distance(activities.begin(), it);
+    if (identifier.empty()) {
+        throw std::invalid_argument("Invalid input: identifier is empty.");
     }
 
-    // Ask for confirmation before removing
+    bool isNumber = std::all_of(identifier.begin(), identifier.end(), ::isdigit);
+
+    if (isNumber) {
+        size_t index = std::stoul(identifier);
+        if (index == 0 || index > activities.size()) {
+            throw std::out_of_range("Activity index is out of range!");
+        }
+        index--;
+
+        if (!skipConfirmation) {
+            std::cout << "Are you sure you want to delete '"
+                      << activities[index].getDescription()
+                      << "'? (y/n): ";
+            char confirm;
+            std::cin >> confirm;
+            if (confirm != 'y' && confirm != 'Y') {
+                std::cout << "Deletion canceled.\n";
+                return;
+            }
+        }
+
+        activities.erase(activities.begin() + index);
+        notifyObservers();
+        return;
+    }
+
+    // Search by name
+    std::vector<size_t> matchingIndexes;
+    for (size_t i = 0; i < activities.size(); ++i) {
+        if (activities[i].getDescription() == identifier) {
+            matchingIndexes.push_back(i);
+        }
+    }
+
+    if (matchingIndexes.empty()) {
+        throw std::out_of_range("No activity found with name '" + identifier + "'!");
+    }
+
+    size_t indexToRemove = matchingIndexes[0];
+
+    if (matchingIndexes.size() > 1) {
+        std::cout << "Multiple activities found with name '" << identifier << "'. Choose which one to remove:\n";
+        for (size_t i = 0; i < matchingIndexes.size(); ++i) {
+            std::cout << i + 1 << ". " << activities[matchingIndexes[i]].getDescription() << "\n";
+        }
+        size_t choice;
+        std::cout << "Enter the number: ";
+        std::cin >> choice;
+        if (choice == 0 || choice > matchingIndexes.size()) {
+            throw std::invalid_argument("Invalid choice. Operation canceled.");
+        }
+        indexToRemove = matchingIndexes[choice - 1];
+    }
+
     if (!skipConfirmation) {
-        std::cout << "Are you sure you want to delete '" << activities[index].getDescription() << "'? (y/n): ";
+        std::cout << "Are you sure you want to delete '" << activities[indexToRemove].getDescription() << "'? (y/n): ";
         char confirm;
         std::cin >> confirm;
         if (confirm != 'y' && confirm != 'Y') {
@@ -121,21 +155,58 @@ void TodoList::removeActivity(const std::string& identifier, bool skipConfirmati
         }
     }
 
-    // Remove the activity
-    activities.erase(activities.begin() + index);
-    notifyObservers(); // Notify observers about the change
+    activities.erase(activities.begin() + indexToRemove);
+    notifyObservers();
 }
 
+void TodoList::markActivityAsCompleted(const std::string& identifier) {
+    if (identifier.empty()) {
+        throw std::invalid_argument("Invalid input: identifier is empty.");
+    }
 
-// Marks an activity as completed and notifies observers
-void TodoList::markActivityAsCompleted(size_t index) {
-    if (index >= activities.size()) {
-        std::cerr << "Error: Invalid index!\n";
+    bool isNumber = std::all_of(identifier.begin(), identifier.end(), ::isdigit);
+
+    if (isNumber) {
+        size_t index = std::stoul(identifier);
+        if (index == 0 || index > activities.size()) {
+            throw std::out_of_range("Activity index is out of range!");
+        }
+        index--;
+
+        activities[index].setCompleted(true);
+        notifyObservers();
         return;
     }
 
-    activities[index].setCompleted(true);
-    notifyObservers(); // Notify observers when an activity is marked as completed
+    std::vector<size_t> matchingIndexes;
+    for (size_t i = 0; i < activities.size(); ++i) {
+        if (activities[i].getDescription() == identifier) {
+            matchingIndexes.push_back(i);
+        }
+    }
+
+    if (matchingIndexes.empty()) {
+        throw std::out_of_range("No activity found with name '" + identifier + "'!");
+    }
+
+    size_t indexToMark = matchingIndexes[0];
+
+    if (matchingIndexes.size() > 1) {
+        std::cout << "Multiple activities found with name '" << identifier << "'. Choose which one to mark as completed:\n";
+        for (size_t i = 0; i < matchingIndexes.size(); ++i) {
+            std::cout << i + 1 << ". " << activities[matchingIndexes[i]].getDescription() << "\n";
+        }
+        size_t choice;
+        std::cout << "Enter the number: ";
+        std::cin >> choice;
+        if (choice == 0 || choice > matchingIndexes.size()) {
+            throw std::invalid_argument("Invalid choice. Operation canceled.");
+        }
+        indexToMark = matchingIndexes[choice - 1];
+    }
+
+    activities[indexToMark].setCompleted(true);
+    notifyObservers();
 }
 
 // Edits an existing activity (description, completion status, due date)

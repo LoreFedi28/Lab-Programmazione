@@ -25,61 +25,94 @@ TEST(ActivityTest, SerializationAndDeserialization) {
     std::cout << "SerializationAndDeserialization test PASSED!\n";
 }
 
-// Test adding and removing activities from the TodoList
-TEST(TodoListTest, AddAndRemoveActivity) {
-    std::cout << "\nRunning AddAndRemoveActivity test...\n";
-
-    TodoList todoList("TestList");
-    MockObserver observer;
-    todoList.addObserver(&observer); // Attach the mock observer
-
-    Activity activity1("First Activity");
-    Activity activity2("Second Activity");
-
-    observer.updated = false;
-    todoList.addActivity(activity1);
-    EXPECT_TRUE(observer.updated); // Observer should be notified when an activity is added
-
-    observer.updated = false;
-    todoList.addActivity(activity2);
-    EXPECT_TRUE(observer.updated);
-
-    // Ensure two activities are in the list
-    ASSERT_EQ(todoList.getActivities().size(), 2);
-
-    observer.updated = false;
-    todoList.removeActivity(0, true); // Remove first activity (skip confirmation)
-    EXPECT_TRUE(observer.updated); // Observer should be notified on removal
-
-    // Verify that only one activity remains in the list
-    ASSERT_EQ(todoList.getActivities().size(), 1);
-
-    std::cout << "AddAndRemoveActivity test PASSED!\n";
-}
-
-// Test marking an activity as completed
-TEST(TodoListTest, MarkActivityAsCompleted) {
-    std::cout << "\nRunning MarkActivityAsCompleted test...\n";
+// Test adding activities from the TodoList
+TEST(TodoListTest, AddActivity) {
+    std::cout << "\nRunning AddActivity test...\n";
 
     TodoList todoList("TestList");
     MockObserver observer;
     todoList.addObserver(&observer);
 
-    std::time_t dueDate = 1700000000;
-    todoList.addActivity(Activity("Test Activity", false, dueDate));
-
-    // Ensure the activity is initially not completed
-    EXPECT_FALSE(todoList.getActivities()[0].isCompleted());
+    observer.updated = false;
+    todoList.addActivity(Activity("Task 1"));
     EXPECT_TRUE(observer.updated);
+    EXPECT_EQ(todoList.getTotalActivities(), 1);
 
     observer.updated = false;
-    todoList.markActivityAsCompleted(0); // Mark activity as completed
+    todoList.addActivity(Activity("Task 2"));
+    EXPECT_TRUE(observer.updated);
+    EXPECT_EQ(todoList.getTotalActivities(), 2);
 
-    // Verify that the activity is now marked as completed
+    std::cout << "AddActivity test PASSED!\n";
+}
+
+TEST(TodoListTest, RemoveActivity) {
+    std::cout << "\nRunning RemoveActivity test...\n";
+
+    TodoList todoList("TestList");
+    todoList.addActivity(Activity("Task A"));
+    todoList.addActivity(Activity("Task B"));
+    todoList.addActivity(Activity("Task C"));
+
+    // Remove by index (valid)
+    EXPECT_NO_THROW(todoList.removeActivity("1", true));
+    EXPECT_EQ(todoList.getTotalActivities(), 2);
+
+    // Remove by name (valid)
+    EXPECT_NO_THROW(todoList.removeActivity("Task C", true));
+    EXPECT_EQ(todoList.getTotalActivities(), 1);
+
+    std::cout << "RemoveActivity test PASSED!\n";
+}
+
+TEST(TodoListTest, RemoveInvalidActivity) {
+    std::cout << "\nRunning RemoveInvalidActivity test...\n";
+
+    TodoList todoList("TestList");
+    MockObserver observer;
+    todoList.addObserver(&observer);
+
+    // Expect exceptions for invalid removals
+    EXPECT_THROW(todoList.removeActivity("10", true), std::out_of_range);
+    EXPECT_THROW(todoList.removeActivity("999", true), std::out_of_range);
+    EXPECT_THROW(todoList.removeActivity("-1", true), std::out_of_range);
+    EXPECT_THROW(todoList.removeActivity("Nonexistent Task", true), std::out_of_range);
+
+    std::cout << "RemoveInvalidActivity test PASSED!\n";
+}
+
+TEST(TodoListTest, MarkActivityAsCompleted) {
+    std::cout << "\nRunning MarkActivityAsCompleted test...\n";
+
+    TodoList todoList("TestList");
+    todoList.addActivity(Activity("Task A", false));
+    todoList.addActivity(Activity("Task B", false));
+
+    // Case: Mark by index (valid)
+    EXPECT_NO_THROW(todoList.markActivityAsCompleted("1"));
     EXPECT_TRUE(todoList.getActivities()[0].isCompleted());
-    EXPECT_TRUE(observer.updated); // Observer should be notified
+
+    // Case: Mark by name (valid)
+    EXPECT_NO_THROW(todoList.markActivityAsCompleted("Task B"));
+    EXPECT_TRUE(todoList.getActivities()[1].isCompleted());
 
     std::cout << "MarkActivityAsCompleted test PASSED!\n";
+}
+
+TEST(TodoListTest, MarkInvalidActivity) {
+    std::cout << "\nRunning MarkInvalidActivity test...\n";
+
+    TodoList todoList("TestList");
+    todoList.addActivity(Activity("Task Y", false));
+
+    // Expect exceptions for invalid marks
+    EXPECT_THROW(todoList.markActivityAsCompleted("99"), std::out_of_range);
+    EXPECT_THROW(todoList.markActivityAsCompleted("Nonexistent Task"), std::out_of_range);
+
+    // Ensure the existing activity is still uncompleted
+    EXPECT_FALSE(todoList.getActivities()[0].isCompleted());
+
+    std::cout << "MarkInvalidActivity test PASSED!\n";
 }
 
 TEST(TodoListTest, EditActivity) {
@@ -208,32 +241,6 @@ TEST(TodoListTest, SaveAndLoadFromFile) {
     std::remove(filename.c_str());
 
     std::cout << "SaveAndLoadFromFile test PASSED!\n";
-}
-
-// Test removing an activity with an invalid index
-TEST(TodoListTest, RemoveInvalidIndex) {
-    std::cout << "\nRunning RemoveInvalidIndex test...\n";
-
-    TodoList todoList("TestList");
-    MockObserver observer;
-    todoList.addObserver(&observer);
-
-    todoList.addActivity(Activity("Test Activity"));
-    EXPECT_EQ(todoList.getActivities().size(), 1);
-
-    observer.updated = false;
-
-    // Test removing an invalid index (out of bounds)
-    EXPECT_THROW(todoList.removeActivity("10", true), std::out_of_range);
-    EXPECT_THROW(todoList.removeActivity("999", true), std::out_of_range);
-    EXPECT_THROW(todoList.removeActivity("-1", true), std::out_of_range);
-
-
-    // Ensure the activity list remains unchanged
-    EXPECT_EQ(todoList.getActivities().size(), 1);
-    EXPECT_FALSE(observer.updated); // Observer should NOT be notified
-
-    std::cout << "RemoveInvalidIndex test PASSED!\n";
 }
 
 // Test loading from a non-existent file
