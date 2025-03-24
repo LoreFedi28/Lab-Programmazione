@@ -3,10 +3,69 @@
 #include <fstream>
 #include <ctime>
 #include <algorithm>
+#include <iomanip>
 
-// Adds an observer to the list
+// Default constructor
+TodoList::TodoList() : name("UnnamedList") {}
+
+// Constructor with name
+TodoList::TodoList(const std::string& listName) : name(listName) {}
+
+// Get the name of the list
+std::string TodoList::getName() const {
+    return name;
+}
+
+// Set a new name for the list
+void TodoList::setName(const std::string& newName) {
+    name = newName;
+    notifyObservers();
+}
+
+// Getter for the activities list
+std::vector<Activity> TodoList::getActivities() const {
+    return activities;
+}
+
+// Get total number of activities
+size_t TodoList::getTotalActivities() const {
+    return activities.size();
+}
+
+// Get number of pending activities
+size_t TodoList::getPendingActivities() const {
+    return std::count_if(activities.begin(), activities.end(), [](const Activity& a) {
+        return !a.isCompleted();
+    });
+}
+
+// Finds all activities that match the given name
+std::vector<Activity> TodoList::findActivitiesByName(const std::string& name) const {
+    std::vector<Activity> result;
+    for (const auto& activity : activities) {
+        if (activity.getDescription() == name) {
+            result.push_back(activity);
+        }
+    }
+    return result;
+}
+
+// Finds all activities with the same due date
+std::vector<Activity> TodoList::findActivitiesByDueDate(std::time_t dueDate) const {
+    std::vector<Activity> result;
+    for (const auto& activity : activities) {
+        if (activity.getDueDate() == dueDate) {
+            result.push_back(activity);
+        }
+    }
+    return result;
+}
+
+// Adds an observer to the list (if not already present)
 void TodoList::addObserver(Observer* observer) {
-    observers.push_back(observer);
+    if (std::find(observers.begin(), observers.end(), observer) == observers.end()) {
+        observers.push_back(observer);
+    }
 }
 
 // Removes an observer from the list
@@ -15,7 +74,7 @@ void TodoList::removeObserver(Observer* observer) {
 }
 
 // Notifies all observers when a change occurs
-void TodoList::notifyObservers() {
+void TodoList::notifyObservers() const {
     for (Observer* observer : observers) {
         observer->update(); // Calls update() on each observer
     }
@@ -27,39 +86,114 @@ void TodoList::addActivity(const Activity& activity) {
     notifyObservers(); // Notify observers when a new activity is added
 }
 
-// Removes an activity and notifies observers
-void TodoList::removeActivity(size_t index, bool skipConfirmation) {
-    if (index < activities.size()) {
-        if (!skipConfirmation) { // If not skipping confirmation, ask the user
-            std::cout << "Are you sure you want to delete '"
-                      << activities[index].getDescription()
-                      << "'? (y/n): ";
-            char confirm;
-            std::cin >> confirm;
-            if (confirm != 'y' && confirm != 'Y') {
-                std::cout << "Deletion canceled.\n";
-                return;
-            }
+// Removes an activity by index (if numeric) or by name and notifies observers
+void TodoList::removeActivity(const std::string& identifier, bool skipConfirmation) {
+    size_t index = activities.size(); // Initialize with an out-of-range value
+
+    // Check if the input is a number (index) or a string (activity name)
+    try {
+        index = std::stoul(identifier); // Try converting to a number
+        if (index >= activities.size()) {
+            throw std::out_of_range("Error: Activity index is out of range!");
         }
-        activities.erase(activities.begin() + index);
-        notifyObservers(); // Notify observers after removal
-    } else {
-        std::cerr << "Invalid index!\n";
+    } catch (const std::invalid_argument&) {
+        // If conversion fails, search for an activity by name
+        auto it = std::find_if(activities.begin(), activities.end(), [&](const Activity& a) {
+            return a.getDescription() == identifier;
+        });
+
+        if (it == activities.end()) {
+            std::cerr << "Error: Activity not found!\n";
+            return;
+        }
+
+        index = std::distance(activities.begin(), it);
     }
+
+    // Ask for confirmation before removing
+    if (!skipConfirmation) {
+        std::cout << "Are you sure you want to delete '" << activities[index].getDescription() << "'? (y/n): ";
+        char confirm;
+        std::cin >> confirm;
+        if (confirm != 'y' && confirm != 'Y') {
+            std::cout << "Deletion canceled.\n";
+            return;
+        }
+    }
+
+    // Remove the activity
+    activities.erase(activities.begin() + index);
+    notifyObservers(); // Notify observers about the change
 }
+
 
 // Marks an activity as completed and notifies observers
 void TodoList::markActivityAsCompleted(size_t index) {
-    if (index < activities.size()) {
-        activities[index].setCompleted(true);
-        notifyObservers(); // Notify observers when an activity is marked as completed
-    } else {
-        std::cerr << "Invalid index!\n";
+    if (index >= activities.size()) {
+        std::cerr << "Error: Invalid index!\n";
+        return;
     }
+
+    activities[index].setCompleted(true);
+    notifyObservers(); // Notify observers when an activity is marked as completed
+}
+
+// Edits an existing activity (description, completion status, due date)
+void TodoList::editActivity(size_t index) {
+    if (index >= activities.size()) {
+        std::cerr << "Error: Invalid index!\n";
+        return;
+    }
+
+    Activity& activity = activities[index];
+
+    std::cout << "Editing Activity: " << activity.getDescription() << std::endl;
+
+    // Modify description
+    std::cout << "Enter new description (or press ENTER to keep current): ";
+    std::string newDescription;
+    std::getline(std::cin >> std::ws, newDescription);
+    if (!newDescription.empty()) {
+        activity.setDescription(newDescription);
+    }
+
+    // Modify completion status
+    std::cout << "Is the activity completed? (y/n, press ENTER to keep current): ";
+    std::string completedInput;
+    std::getline(std::cin >> std::ws, completedInput);
+    if (!completedInput.empty()) {
+        if (completedInput == "y" || completedInput == "Y") {
+            activity.setCompleted(true);
+        } else if (completedInput == "n" || completedInput == "N") {
+            activity.setCompleted(false);
+        }
+    }
+
+    // Modify due date
+    std::cout << "Enter new due date (YYYY-MM-DD HH:MM, press ENTER to keep current): ";
+    std::string dueDateStr;
+    std::getline(std::cin >> std::ws, dueDateStr);
+    if (!dueDateStr.empty()) {
+        std::tm tm = {};
+        std::istringstream ss(dueDateStr);
+        ss >> std::get_time(&tm, "%Y-%m-%d %H:%M");
+        std::time_t dueDate = std::mktime(&tm);
+        activity.setDueDate(dueDate);
+    }
+
+    notifyObservers(); // Notify observers about the change
+    std::cout << "Activity updated successfully!\n";
 }
 
 // Displays all activities, sorted by due date
 void TodoList::displayActivities() const {
+    std::cout << "\n--- Todo List: " << name << " ---\n";
+
+    if (activities.empty()) {
+        std::cout << "No activities to display.\n";
+        return;
+    }
+
     std::vector<Activity> sortedActivities = activities;
     std::sort(sortedActivities.begin(), sortedActivities.end(),
         [](const Activity& a, const Activity& b) {

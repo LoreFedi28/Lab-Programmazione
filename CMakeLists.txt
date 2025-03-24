@@ -8,7 +8,8 @@ add_subdirectory(Test)
 # Main executable (application)
 add_executable(LabProgrammazione main.cpp Activity.cpp TodoList.cpp
         Observer.h
-        ConsoleDisplay.h)
+        ConsoleDisplay.h
+        Subject.h)
 
 # Link Google Test to unit tests
 target_link_libraries(runLabProgrammazioneTest gtest gtest_main)
