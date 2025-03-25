@@ -7,7 +7,6 @@
 #include <string>
 #include <fstream>
 #include <iostream>
-#include <algorithm>
 
 // The TodoList class manages a list of activities and notifies observers of any changes.
 class TodoList : public Subject { // Inherit from Subject
@@ -20,7 +19,7 @@ public:
     // Default constructor (needed for std::map)
     TodoList();
     // Modify constructor to accept a name
-    explicit TodoList(const std::string& listName);
+    explicit TodoList(std::string  listName);
 
     // Getter for the TodoList name
     [[nodiscard]] std::string getName() const;
@@ -40,9 +39,9 @@ public:
     // Marks an activity as completed by index or name and notifies observers
     void markActivityAsCompleted(const std::string& identifier);
     // Edits an activity's details (description, completion status, due date)
-    void editActivity(size_t index);
-    // Displays all activities sorted by due date
-    void displayActivities() const;
+    void editActivity(const std::string& identifier);
+    // Converts the TodoList activities to a formatted string
+    [[nodiscard]] std::string toString() const;
 
     // Saves the list of activities to a file
     void saveToFile(const std::string& filename) const;

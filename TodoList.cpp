@@ -4,12 +4,13 @@
 #include <ctime>
 #include <algorithm>
 #include <iomanip>
+#include <utility>
 
 // Default constructor
 TodoList::TodoList() : name("UnnamedList") {}
 
 // Constructor with name
-TodoList::TodoList(const std::string& listName) : name(listName) {}
+TodoList::TodoList(std::string  listName) : name(std::move(listName)) {}
 
 // Get the name of the list
 std::string TodoList::getName() const {
@@ -91,9 +92,7 @@ void TodoList::removeActivity(const std::string& identifier, bool skipConfirmati
         throw std::invalid_argument("Invalid input: identifier is empty.");
     }
 
-    bool isNumber = std::all_of(identifier.begin(), identifier.end(), ::isdigit);
-
-    if (isNumber) {
+    if (bool isNumber = std::all_of(identifier.begin(), identifier.end(), ::isdigit)) {
         size_t index = std::stoul(identifier);
         if (index == 0 || index > activities.size()) {
             throw std::out_of_range("Activity index is out of range!");
@@ -164,9 +163,7 @@ void TodoList::markActivityAsCompleted(const std::string& identifier) {
         throw std::invalid_argument("Invalid input: identifier is empty.");
     }
 
-    bool isNumber = std::all_of(identifier.begin(), identifier.end(), ::isdigit);
-
-    if (isNumber) {
+    if (bool isNumber = std::all_of(identifier.begin(), identifier.end(), ::isdigit)) {
         size_t index = std::stoul(identifier);
         if (index == 0 || index > activities.size()) {
             throw std::out_of_range("Activity index is out of range!");
@@ -210,12 +207,57 @@ void TodoList::markActivityAsCompleted(const std::string& identifier) {
 }
 
 // Edits an existing activity (description, completion status, due date)
-void TodoList::editActivity(size_t index) {
-    if (index >= activities.size()) {
-        std::cerr << "Error: Invalid index!\n";
+void TodoList::editActivity(const std::string& identifier) {
+    if (identifier.empty()) {
+        std::cerr << "Error: Invalid input!\n";
         return;
     }
 
+    bool isNumber = std::all_of(identifier.begin(), identifier.end(), ::isdigit);
+    size_t index = std::string::npos; // Default to an invalid index
+
+    if (isNumber) {
+        // Convert string to numeric index
+        index = std::stoul(identifier);
+        if (index == 0 || index > activities.size()) {
+            std::cerr << "Error: Activity index is out of range!\n";
+            return;
+        }
+        index--; // Convert from 1-based to 0-based indexing
+    } else {
+        // Search for activity by name
+        std::vector<size_t> matchingIndexes;
+        for (size_t i = 0; i < activities.size(); ++i) {
+            if (activities[i].getDescription() == identifier) {
+                matchingIndexes.push_back(i);
+            }
+        }
+
+        if (matchingIndexes.empty()) {
+            std::cerr << "Error: No activity found with name '" << identifier << "'!\n";
+            return;
+        }
+
+        // If multiple activities have the same name, ask the user to choose
+        if (matchingIndexes.size() > 1) {
+            std::cout << "Multiple activities found with name '" << identifier << "'. Choose which one to edit:\n";
+            for (size_t i = 0; i < matchingIndexes.size(); ++i) {
+                std::cout << i + 1 << ". " << activities[matchingIndexes[i]].getDescription() << "\n";
+            }
+            size_t choice;
+            std::cout << "Enter the number: ";
+            std::cin >> choice;
+            if (choice == 0 || choice > matchingIndexes.size()) {
+                std::cerr << "Invalid choice. Operation canceled.\n";
+                return;
+            }
+            index = matchingIndexes[choice - 1];
+        } else {
+            index = matchingIndexes[0];
+        }
+    }
+
+    // Now index contains the valid activity index to edit
     Activity& activity = activities[index];
 
     std::cout << "Editing Activity: " << activity.getDescription() << std::endl;
@@ -223,7 +265,8 @@ void TodoList::editActivity(size_t index) {
     // Modify description
     std::cout << "Enter new description (or press ENTER to keep current): ";
     std::string newDescription;
-    std::getline(std::cin >> std::ws, newDescription);
+    if (std::cin.peek() == '\n') std::cin.ignore();  // Ignore any leftover newline
+    std::getline(std::cin, newDescription);
     if (!newDescription.empty()) {
         activity.setDescription(newDescription);
     }
@@ -256,13 +299,13 @@ void TodoList::editActivity(size_t index) {
     std::cout << "Activity updated successfully!\n";
 }
 
-// Displays all activities, sorted by due date
-void TodoList::displayActivities() const {
-    std::cout << "\n--- Todo List: " << name << " ---\n";
+std::string TodoList::toString() const {
+    std::ostringstream output;
+    output << "--- Todo List: " << name << " ---\n";
 
     if (activities.empty()) {
-        std::cout << "No activities to display.\n";
-        return;
+        output << "No activities to display.\n";
+        return output.str();
     }
 
     std::vector<Activity> sortedActivities = activities;
@@ -274,15 +317,14 @@ void TodoList::displayActivities() const {
 
     for (size_t i = 0; i < sortedActivities.size(); ++i) {
         std::time_t dueDate = sortedActivities[i].getDueDate();
-
-        // Convert time to string and remove the newline at the end
         std::string dueDateStr = std::ctime(&dueDate);
-        dueDateStr.erase(dueDateStr.find_last_not_of('\n') + 1);  // Remove trailing newline
+        dueDateStr.erase(dueDateStr.find_last_not_of('\n') + 1);
 
-        std::cout << i + 1 << ". " << sortedActivities[i].getDescription()
-                  << " [" << (sortedActivities[i].isCompleted() ? "Done" : "Not Done") << "]"
-                  << " (Due: " << dueDateStr << ")\n"; // Corrected: no unwanted line break
+        output << i + 1 << ". " << sortedActivities[i].getDescription()
+               << " [" << (sortedActivities[i].isCompleted() ? "Done" : "Not Done") << "]"
+               << " (Due: " << dueDateStr << ")\n";
     }
+    return output.str();
 }
 
 // Saves the activities to a file

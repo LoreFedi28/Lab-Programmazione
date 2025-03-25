@@ -20,7 +20,7 @@ public:
 
     void update() override {
         std::cout << "\nTodo List Updated:\n";
-        todoList.displayActivities();
+        std::cout << todoList.toString();
     }
 };
 

@@ -1,9 +1,11 @@
 #include "Activity.h"
+#include <algorithm>
 #include <sstream>
 #include <ctime>
+#include <utility>
 
 // Constructor that initializes activity attributes
-Activity::Activity(const std::string& desc, bool comp, time_t date) : description(desc), completed(comp), dueDate(date) {}
+Activity::Activity(std::string  desc, bool comp, time_t date) : description(std::move(desc)), completed(comp), dueDate(date) {}
 
 // Getters: Retrieve the values of private attributes
 std::string Activity::getDescription() const {
@@ -40,8 +42,19 @@ std::string Activity::serialize() const {
 Activity Activity::deserialize(const std::string& data) {
     std::istringstream iss(data);
     std::string desc, comp, dateStr;
-    std::getline(iss, desc, ';');
-    std::getline(iss, comp, ';');
-    std::getline(iss, dateStr);
-    return Activity(desc, comp == "1", std::stoll(dateStr)); // Converts string to time_t
+
+    if (!(std::getline(iss, desc, ';') &&
+          std::getline(iss, comp, ';') &&
+          std::getline(iss, dateStr))) {
+        throw std::invalid_argument("Error: Malformed serialized string");
+          }
+
+    bool completed = (comp == "1");
+
+    if (dateStr.empty() || !std::all_of(dateStr.begin(), dateStr.end(), ::isdigit)) {
+        throw std::invalid_argument("Error: Invalid due date in serialized string");
+    }
+
+    std::time_t dueDate = std::stoll(dateStr);
+    return Activity(desc, completed, dueDate);
 }

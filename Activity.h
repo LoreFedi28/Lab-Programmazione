@@ -12,7 +12,7 @@ private:
 
 public:
     // Constructor with default parameters
-    explicit Activity(const std::string& desc, bool comp = false, time_t date = 0);
+    explicit Activity(std::string  desc, bool comp = false, time_t date = 0);
 
     // Getters for retrieving activity details
     [[nodiscard]] std::string getDescription() const;

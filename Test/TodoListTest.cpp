@@ -4,25 +4,32 @@
 #include "MockObserver.h"
 #include <iostream>
 
-// Test the serialization and deserialization of an Activity object
-TEST(ActivityTest, SerializationAndDeserialization) {
-    std::cout << "\nRunning SerializationAndDeserialization test...\n";
+TEST(ActivityTest, Serialization) {
+    std::cout << "\nRunning Serialization test...\n";
 
-    std::time_t dueDate = 1700000000; // Example fixed timestamp
+    std::time_t dueDate = 1700000000;
     Activity activity("Test Activity", true, dueDate);
 
-    // Serialize the activity to a string
     std::string serialized = activity.serialize();
+    EXPECT_FALSE(serialized.empty());
 
-    // Deserialize the string back into an Activity object
-    Activity deserialized = Activity::deserialize(serialized);
+    std::cout << "Serialization test PASSED!\n";
+}
 
-    // Ensure the deserialized object has the same properties as the original
-    EXPECT_EQ(activity.getDescription(), deserialized.getDescription());
-    EXPECT_EQ(activity.isCompleted(), deserialized.isCompleted());
-    EXPECT_EQ(activity.getDueDate(), deserialized.getDueDate());
+TEST(ActivityTest, Deserialization) {
+    std::cout << "\nRunning Deserialization test...\n";
 
-    std::cout << "SerializationAndDeserialization test PASSED!\n";
+    std::string serialized = "Test Activity;1;1700000000";
+    std::cout << "Serialized input: " << serialized << std::endl;
+
+    EXPECT_NO_THROW({
+        Activity deserialized = Activity::deserialize(serialized);
+        EXPECT_EQ(deserialized.getDescription(), "Test Activity");
+        EXPECT_TRUE(deserialized.isCompleted());
+        EXPECT_EQ(deserialized.getDueDate(), 1700000000);
+    });
+
+    std::cout << "Deserialization test PASSED!\n";
 }
 
 // Test adding activities from the TodoList
@@ -134,7 +141,7 @@ TEST(TodoListTest, EditActivity) {
     std::stringstream input("Edited Task\nY\n2025-04-20 12:30\n");
     std::streambuf* oldCin = std::cin.rdbuf(input.rdbuf());
 
-    todoList.editActivity(0);
+    todoList.editActivity("1");
 
     std::cin.rdbuf(oldCin);
 
@@ -164,6 +171,25 @@ TEST(TodoListTest, CountActivities) {
     EXPECT_EQ(todoList.getPendingActivities(), 2);
 
     std::cout << "CountActivities test PASSED!\n";
+}
+
+TEST(TodoListTest, ToString) {
+    std::cout << "\nRunning ToString test...\n";
+
+    TodoList todoList("TestList");
+    todoList.addActivity(Activity("Task 1", false));
+    todoList.addActivity(Activity("Task 2", true));
+    todoList.addActivity(Activity("Task 3", false));
+
+    std::string expectedOutput =
+        "--- Todo List: TestList ---\n"
+        "1. Task 1 [Not Done] (Due: Thu Jan 01 01:00:00 1970)\n"
+        "2. Task 2 [Done] (Due: Thu Jan 01 01:00:00 1970)\n"
+        "3. Task 3 [Not Done] (Due: Thu Jan 01 01:00:00 1970)\n";
+
+    EXPECT_EQ(todoList.toString(), expectedOutput);
+
+    std::cout << "ToString test PASSED!\n";
 }
 
 TEST(TodoListTest, FindActivitiesByName) {

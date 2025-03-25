@@ -2,7 +2,6 @@
 #include "ConsoleDisplay.h"
 #include <iostream>
 #include <map>
-#include <limits>
 #include <sstream>
 #include <exception>
 #include <iomanip>
@@ -88,19 +87,21 @@ int main() {
                     std::cout << "\nManaging TodoList: " << activeListName << "\n";
                     std::cout << "1. Add Activity\n";
                     std::cout << "2. Remove Activity\n";
-                    std::cout << "3. Display Activities\n";
+                    std::cout << "3. Edit Activity\n";
                     std::cout << "4. Mark Activity as Completed\n";
-                    std::cout << "5. Edit Activity\n";
-                    std::cout << "6. Save to File\n";
-                    std::cout << "7. Load from File\n";
-                    std::cout << "8. Rename TodoList\n";
-                    std::cout << "9. Show Activity Counts\n";
-                    std::cout << "10. Find Activities by Name\n";
-                    std::cout << "11. Find Activities by Due Date\n";
+                    std::cout << "5. Display Activities\n";
+                    std::cout << "6. Show Activity Counts\n";
+                    std::cout << "7. Find Activities by Name\n";
+                    std::cout << "8. Find Activities by Due Date\n";
+                    std::cout << "9. Save to File\n";
+                    std::cout << "10. Load from File\n";
+                    std::cout << "11. Rename TodoList\n";
                     std::cout << "0. Back\n";
                     std::cout << "Choose an option: ";
                     std::cin >> subChoice;
                     std::cin.ignore();
+
+                    std::string identifier;
 
                     switch (subChoice) {
                         case 1: {
@@ -108,98 +109,83 @@ int main() {
                             std::cout << "Enter activity description: ";
                             std::getline(std::cin, description);
 
-                            std::cout << "Enter due date (YYYY-MM-DD HH:MM): ";
-                            std::string dueDateStr;
-                            std::getline(std::cin, dueDateStr);
-
-                            std::tm tm = {};
-                            std::istringstream ss(dueDateStr);
-
-                            if (!(ss >> std::get_time(&tm, "%Y-%m-%d %H:%M"))) {
-                                std::cerr << "Error: Invalid date format! Please use YYYY-MM-DD HH:MM.\n";
-                                continue;
+                            if (description.empty()) {
+                                std::cerr << "Error: Activity description cannot be empty!\n";
+                                break;
                             }
 
-                            std::time_t dueDate = std::mktime(&tm);
+                            std::string dueDateStr;
+                            std::time_t dueDate;
+                            bool validDate = false;
 
-                            todoList.addActivity(Activity(description, false, dueDate));
+                            while (!validDate) {
+                                std::cout << "Enter due date (YYYY-MM-DD HH:MM): ";
+                                std::getline(std::cin, dueDateStr);
+
+                                std::tm tm = {};
+                                std::istringstream ss(dueDateStr);
+                                if (ss >> std::get_time(&tm, "%Y-%m-%d %H:%M")) {
+                                    tm.tm_isdst = -1;
+                                    dueDate = std::mktime(&tm);
+
+                                    if (dueDate != -1) {
+                                        validDate = true;
+                                    } else {
+                                        std::cerr << "Error: Invalid date value!\n";
+                                    }
+                                } else {
+                                    std::cerr << "Error: Invalid date format! Please use YYYY-MM-DD HH:MM.\n";
+                                }
+                            }
+
+                            Activity newActivity(description, dueDate);
+                            todoList.addActivity(newActivity);
+                            std::cout << "Activity added: " << description << " (Due: " << std::ctime(&dueDate) << ")";
                             break;
                         }
                         case 2: {
-                            size_t index;
-                            std::cout << "Enter activity number to remove: ";
-                            std::cin >> index;
+                            std::cout << "Enter activity number or name to remove: ";
+                            std::getline(std::cin, identifier);
 
                             try {
-                                todoList.removeActivity(index - 1);
-                            } catch (const std::out_of_range& e) {
+                                todoList.removeActivity(identifier);
+                            } catch (const std::exception& e) {
                                 std::cerr << "Error: " << e.what() << std::endl;
                             }
-
                             break;
                         }
-                        case 3:
-                            todoList.displayActivities();
+                        case 3: {
+                            bool validInput = false;
+
+                            while (!validInput) {
+                                std::cout << "Enter activity number or name to edit: ";
+                                std::getline(std::cin, identifier);
+
+                                try {
+                                    todoList.editActivity(identifier);
+                                    validInput = true;
+                                } catch (const std::exception& e) {
+                                    std::cerr << "Error: " << e.what() << "\nPlease try again.\n";
+                                }
+                            }
                             break;
+                        }
                         case 4: {
-                            size_t index;
-                            std::cout << "Enter activity number to mark as completed: ";
-                            std::cin >> index;
-                            std::cin.ignore();
-                            todoList.markActivityAsCompleted(index - 1);
+                            std::cout << "Enter activity number or name to mark as completed: ";
+                            std::getline(std::cin, identifier);
+                            todoList.markActivityAsCompleted(identifier);
                             break;
                         }
                         case 5: {
-                            size_t index;
-                            std::cout << "Enter activity number to edit: ";
-                            std::cin >> index;
-                            std::cin.ignore();
-                            todoList.editActivity(index - 1);
+                            std::cout << todoList.toString();
                             break;
                         }
                         case 6: {
-                            std::string filename;
-                            std::cout << "Enter filename: ";
-                            std::cin >> filename;
-                            std::cin.ignore();
-                            todoList.saveToFile(filename);
-                            break;
-                        }
-                        case 7: {
-                            std::string filename;
-                            std::cout << "Enter filename: ";
-                            std::cin >> filename;
-                            std::cin.ignore();
-
-                            try {
-                                todoList.loadFromFile(filename);
-                            } catch (const std::exception& e) {
-                                std::cerr << "Error loading file: " << e.what() << std::endl;
-                            }
-                            break;
-                        }
-                        case 8: {
-                            std::cout << "Enter new name for this TodoList: ";
-                            std::string newName;
-                            std::getline(std::cin, newName);
-
-                            if (todoLists.find(newName) != todoLists.end()) {
-                                std::cout << "A TodoList with this name already exists!\n";
-                            } else {
-                                todoLists.emplace(newName, std::move(todoLists[activeListName]));
-                                todoLists.erase(activeListName);
-                                activeListName = newName;
-                                std::cout << "TodoList renamed to '" << newName << "'.\n";
-                            }
-                            break;
-                        }
-                        case 9: {
                             std::cout << "Total activities: " << todoList.getTotalActivities() << std::endl;
                             std::cout << "Pending activities: " << todoList.getPendingActivities() << std::endl;
                             break;
                         }
-                        case 10: {
-                            std::cin.ignore();
+                        case 7: {
                             std::string name;
                             std::cout << "Enter activity name: ";
                             std::getline(std::cin, name);
@@ -216,17 +202,24 @@ int main() {
                             }
                             break;
                         }
-
-                        case 11: {
-                            std::cin.ignore();
+                        case 8: {
                             std::string dueDateStr;
-                            std::cout << "Enter due date (YYYY-MM-DD HH:MM): ";
-                            std::getline(std::cin, dueDateStr);
+                            std::time_t dueDate;
+                            bool validDate = false;
 
-                            std::tm tm = {};
-                            std::istringstream ss(dueDateStr);
-                            ss >> std::get_time(&tm, "%Y-%m-%d %H:%M");
-                            std::time_t dueDate = std::mktime(&tm);
+                            while (!validDate) {
+                                std::cout << "Enter due date (YYYY-MM-DD HH:MM): ";
+                                std::getline(std::cin, dueDateStr);
+
+                                std::tm tm = {};
+                                std::istringstream ss(dueDateStr);
+                                if (ss >> std::get_time(&tm, "%Y-%m-%d %H:%M")) {
+                                    dueDate = std::mktime(&tm);
+                                    validDate = true;
+                                } else {
+                                    std::cerr << "Error: Invalid date format! Please use YYYY-MM-DD HH:MM.\n";
+                                }
+                            }
 
                             auto results = todoList.findActivitiesByDueDate(dueDate);
                             if (results.empty()) {
@@ -241,10 +234,53 @@ int main() {
                             }
                             break;
                         }
+                        case 9: {
+                            std::string filename;
+                            std::cout << "Enter filename: ";
+                            std::getline(std::cin, filename);
+                            todoList.saveToFile(filename);
+                            break;
+                        }
+                        case 10: {
+                            std::string filename;
+                            std::cout << "Enter filename: ";
+                            std::getline(std::cin, filename);
+
+                            try {
+                                todoList.loadFromFile(filename);
+                            } catch (const std::exception& e) {
+                                std::cerr << "Error loading file: " << e.what() << std::endl;
+                            }
+                            break;
+                        }
+                        case 11: {
+                            std::cout << "Enter new name for this TodoList: ";
+                            std::string newName;
+                            std::getline(std::cin, newName);
+
+                            if (todoLists.find(newName) != todoLists.end()) {
+                                std::cout << "A TodoList with this name already exists!\n";
+                            } else {
+                                todoLists.emplace(newName, std::move(todoLists[activeListName]));
+                                todoLists.erase(activeListName);
+                                activeListName = newName;
+                                std::cout << "TodoList renamed to '" << newName << "'.\n";
+                            }
+                            break;
+                        }
+                        case 0: // Back
+                            break;
+
+                        default:
+                            std::cout << "Invalid choice. Please try again.\n";
+                        break;
                     }
                 } while (subChoice != 0);
                 break;
             }
+            default:
+                std::cout << "Invalid choice. Please try again.\n";
+            break;
         }
     }
 
