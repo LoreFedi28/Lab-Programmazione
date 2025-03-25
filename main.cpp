@@ -230,10 +230,14 @@ int main() {
                                 std::cout << "No activities found with that due date.\n";
                             } else {
                                 std::cout << "Found " << results.size() << " activity/activities:\n";
+
+                                std::string dueDateStrFormatted = std::ctime(&dueDate);
+                                dueDateStrFormatted.erase(dueDateStrFormatted.find_last_not_of("\n") + 1);
+
                                 for (const auto& activity : results) {
                                     std::cout << "- " << activity.getDescription() << " ["
                                               << (activity.isCompleted() ? "Done" : "Not Done") << "] (Due: "
-                                              << std::ctime(&dueDate) << ")\n";
+                                              << dueDateStrFormatted << ")\n";
                                 }
                             }
                             break;
