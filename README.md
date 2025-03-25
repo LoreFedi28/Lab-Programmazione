@@ -1,6 +1,7 @@
 # Todo List Project
 
-This is a C++ project that implements a **Todo List** application with advanced **task management** features. The application allows users to add, edit, remove, and organize activities with due dates while ensuring **automatic UI updates** using the **Observer Pattern**.
+This is a C++ project that implements a **Todo List** application with advanced **task management** features.
+The application allows users to add, edit, remove, and organize activities with due dates while ensuring **automatic UI updates** using the **Observer Pattern**.
 
 ## Features
 
@@ -20,6 +21,12 @@ This is a C++ project that implements a **Todo List** application with advanced 
 ### **Design Patterns**
 - **Observer Pattern**: The user interface updates automatically whenever activities are modified.
 
+### **Observer Pattern Implementation**
+- `Subject.h` → Defines the **Subject** class (observable objects).
+- `Observer.h` → Defines the **Observer** interface.
+- **TodoList** acts as a **Subject**, notifying observers whenever a change occurs.
+- **ConsoleDisplay** is an **Observer**, updating the UI in response to changes.
+
 ### **Robust Input Handling**
 - **Error handling** for invalid or empty inputs.
 - **Looped prompts** until a valid input is provided.
@@ -29,11 +36,11 @@ This is a C++ project that implements a **Todo List** application with advanced 
 - Comprehensive tests for `Activity` and `TodoList` classes.
 - **Mock Observer** to test the Observer Pattern behavior.
 - **Test cases include**:
-  - Serialization & deserialization.
-  - Adding, editing, and removing activities.
-  - Marking activities as completed.
-  - File saving & loading.
-  - Observer notifications.
+    - Serialization & deserialization.
+    - Adding, editing, and removing activities.
+    - Marking activities as completed.
+    - File saving & loading.
+    - Observer notifications.
 
 ---
 
@@ -42,17 +49,18 @@ This is a C++ project that implements a **Todo List** application with advanced 
 ### **Source Code**
 - `Activity.h` / `Activity.cpp` → Defines the **Activity** class (tasks with descriptions & due dates).
 - `TodoList.h` / `TodoList.cpp` → Implements the **Todo List** with activity management.
+- `Subject.h` → Defines the **Subject** class for the **Observer Pattern**.
 - `Observer.h` → Interface for **Observer Pattern**.
 - `ConsoleDisplay.h` / `ConsoleDisplay.cpp` → Implements an **observer** that updates the UI.
 - `main.cpp` → **Entry point** for the application, with a **console menu** for user interaction.
 
 ### **Unit Tests**
 - `Test/TodoListTest.cpp` → **Google Test suite** covering:
-  - **Serialization & deserialization**.
-  - **Adding/removing activities**.
-  - **Marking activities as completed**.
-  - **Editing activities** with valid & invalid inputs.
-  - **Testing observer notifications**.
+    - **Serialization & deserialization**.
+    - **Adding/removing activities**.
+    - **Marking activities as completed**.
+    - **Editing activities** with valid & invalid inputs.
+    - **Testing observer notifications**.
 - `Test/MockObserver.h` → **Mock class** for testing UI updates.
 
 ---
