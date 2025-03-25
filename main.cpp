@@ -138,9 +138,13 @@ int main() {
                                 }
                             }
 
-                            Activity newActivity(description, dueDate);
+                            Activity newActivity(description, false, dueDate);
                             todoList.addActivity(newActivity);
-                            std::cout << "Activity added: " << description << " (Due: " << std::ctime(&dueDate) << ")";
+
+                            std::string dueDateStrFormatted = std::ctime(&dueDate);
+                            dueDateStrFormatted.erase(dueDateStrFormatted.find_last_not_of("\n") + 1);
+
+                            std::cout << "Activity added: " << description << " (Due: " << dueDateStrFormatted << ")\n";
                             break;
                         }
                         case 2: {

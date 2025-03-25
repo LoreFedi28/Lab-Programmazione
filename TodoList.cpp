@@ -247,6 +247,7 @@ void TodoList::editActivity(const std::string& identifier) {
             size_t choice;
             std::cout << "Enter the number: ";
             std::cin >> choice;
+            std::cin.ignore();
             if (choice == 0 || choice > matchingIndexes.size()) {
                 std::cerr << "Invalid choice. Operation canceled.\n";
                 return;
@@ -265,7 +266,6 @@ void TodoList::editActivity(const std::string& identifier) {
     // Modify description
     std::cout << "Enter new description (or press ENTER to keep current): ";
     std::string newDescription;
-    if (std::cin.peek() == '\n') std::cin.ignore();  // Ignore any leftover newline
     std::getline(std::cin, newDescription);
     if (!newDescription.empty()) {
         activity.setDescription(newDescription);
@@ -274,7 +274,7 @@ void TodoList::editActivity(const std::string& identifier) {
     // Modify completion status
     std::cout << "Is the activity completed? (y/n, press ENTER to keep current): ";
     std::string completedInput;
-    std::getline(std::cin >> std::ws, completedInput);
+    std::getline(std::cin, completedInput);
     if (!completedInput.empty()) {
         if (completedInput == "y" || completedInput == "Y") {
             activity.setCompleted(true);
@@ -286,13 +286,16 @@ void TodoList::editActivity(const std::string& identifier) {
     // Modify due date
     std::cout << "Enter new due date (YYYY-MM-DD HH:MM, press ENTER to keep current): ";
     std::string dueDateStr;
-    std::getline(std::cin >> std::ws, dueDateStr);
+    std::getline(std::cin, dueDateStr);
     if (!dueDateStr.empty()) {
         std::tm tm = {};
         std::istringstream ss(dueDateStr);
-        ss >> std::get_time(&tm, "%Y-%m-%d %H:%M");
-        std::time_t dueDate = std::mktime(&tm);
-        activity.setDueDate(dueDate);
+        if (ss >> std::get_time(&tm, "%Y-%m-%d %H:%M")) {
+            std::time_t dueDate = std::mktime(&tm);
+            activity.setDueDate(dueDate);
+        } else {
+            std::cerr << "Error: Invalid date format! Keeping the old date.\n";
+        }
     }
 
     notifyObservers(); // Notify observers about the change
