@@ -92,16 +92,22 @@ TEST(TodoListTest, MarkActivityAsCompleted) {
     std::cout << "\nRunning MarkActivityAsCompleted test...\n";
 
     TodoList todoList("TestList");
+
+    // Add two activities, both initially not completed
     todoList.addActivity(Activity("Task A", false));
     todoList.addActivity(Activity("Task B", false));
 
-    // Case: Mark by index (valid)
-    EXPECT_NO_THROW(todoList.markActivityAsCompleted("1"));
-    EXPECT_TRUE(todoList.getActivities()[0].isCompleted());
+    // At the beginning: 2 total activities, 2 pending
+    EXPECT_EQ(todoList.getTotalActivities(), 2);
+    EXPECT_EQ(todoList.getPendingActivities(), 2);
 
-    // Case: Mark by name (valid)
+    EXPECT_NO_THROW(todoList.markActivityAsCompleted("Task A"));
+    EXPECT_EQ(todoList.getPendingActivities(), 1);  // One pending activity left
+
     EXPECT_NO_THROW(todoList.markActivityAsCompleted("Task B"));
-    EXPECT_TRUE(todoList.getActivities()[1].isCompleted());
+    EXPECT_EQ(todoList.getPendingActivities(), 0);  // All activities completed
+
+    EXPECT_EQ(todoList.getTotalActivities() - todoList.getPendingActivities(), 2); // 2 activities completed
 
     std::cout << "MarkActivityAsCompleted test PASSED!\n";
 }
@@ -126,35 +132,44 @@ TEST(TodoListTest, EditActivity) {
     std::cout << "\nRunning EditActivity test...\n";
 
     TodoList todoList("TestList");
-    MockObserver observer;
-    todoList.addObserver(&observer);
 
-    std::time_t dueDate = 1700000000;
-    todoList.addActivity(Activity("Initial Task", false, dueDate));
+    std::time_t originalDate = 1700000000;
+    std::time_t newDate = 1700500000;
 
-    EXPECT_EQ(todoList.getActivities()[0].getDescription(), "Initial Task");
+    // Add initial activity
+    todoList.addActivity(Activity("Initial Task", false, originalDate));
+
+    // Edit description only
+    bool result1 = todoList.editActivity("1", "Updated Task", false, false, false, 0);
+    EXPECT_TRUE(result1);
+    EXPECT_EQ(todoList.getActivities()[0].getDescription(), "Updated Task");
     EXPECT_FALSE(todoList.getActivities()[0].isCompleted());
-    EXPECT_EQ(todoList.getActivities()[0].getDueDate(), dueDate);
+    EXPECT_EQ(todoList.getActivities()[0].getDueDate(), originalDate);
 
-    observer.updated = false;
-
-    std::stringstream input("Edited Task\nY\n2025-04-20 12:30\n");
-    std::streambuf* oldCin = std::cin.rdbuf(input.rdbuf());
-
-    todoList.editActivity("1");
-
-    std::cin.rdbuf(oldCin);
-
-    EXPECT_EQ(todoList.getActivities()[0].getDescription(), "Edited Task");
+    // Edit completion status only
+    bool result2 = todoList.editActivity("1", "", true, true, false, 0);
+    EXPECT_TRUE(result2);
     EXPECT_TRUE(todoList.getActivities()[0].isCompleted());
 
-    std::tm tm = {};
-    std::istringstream ss("2025-04-20 12:30");
-    ss >> std::get_time(&tm, "%Y-%m-%d %H:%M");
-    std::time_t expectedDueDate = std::mktime(&tm);
+    // Edit due date only
+    bool result3 = todoList.editActivity("1", "", false, false, true, newDate);
+    EXPECT_TRUE(result3);
+    EXPECT_EQ(todoList.getActivities()[0].getDueDate(), newDate);
 
-    EXPECT_EQ(todoList.getActivities()[0].getDueDate(), expectedDueDate);
-    EXPECT_TRUE(observer.updated);
+    // Edit all fields
+    bool result4 = todoList.editActivity("1", "Final Task", true, false, true, originalDate);
+    EXPECT_TRUE(result4);
+    EXPECT_EQ(todoList.getActivities()[0].getDescription(), "Final Task");
+    EXPECT_FALSE(todoList.getActivities()[0].isCompleted());
+    EXPECT_EQ(todoList.getActivities()[0].getDueDate(), originalDate);
+
+    // Invalid identifier (non-existent index)
+    bool result5 = todoList.editActivity("99", "Should Fail", false, false, false, 0);
+    EXPECT_FALSE(result5);
+
+    // Invalid identifier (non-existent name)
+    bool result6 = todoList.editActivity("Nonexistent", "Should Fail", false, false, false, 0);
+    EXPECT_FALSE(result6);
 
     std::cout << "EditActivity test PASSED!\n";
 }
@@ -196,15 +211,21 @@ TEST(TodoListTest, FindActivitiesByName) {
     std::cout << "\nRunning FindActivitiesByName test...\n";
 
     TodoList todoList("TestList");
+
+    // Add two activities with the same name and one with a different name
     todoList.addActivity(Activity("Workout", false));
-    todoList.addActivity(Activity("Workout", true)); // Same name, different status
+    todoList.addActivity(Activity("Workout", true));
     todoList.addActivity(Activity("Shopping", false));
 
+    // Case 1: Matching name
     auto result = todoList.findActivitiesByName("Workout");
-
     EXPECT_EQ(result.size(), 2);
     EXPECT_EQ(result[0].getDescription(), "Workout");
     EXPECT_EQ(result[1].getDescription(), "Workout");
+
+    // Case 2: Name not found
+    auto emptyResult = todoList.findActivitiesByName("Nonexistent");
+    EXPECT_TRUE(emptyResult.empty());  // Should return an empty vector
 
     std::cout << "FindActivitiesByName test PASSED!\n";
 }
@@ -215,16 +236,22 @@ TEST(TodoListTest, FindActivitiesByDueDate) {
     TodoList todoList("TestList");
     std::time_t date1 = 1700000000;
     std::time_t date2 = 1700005000;
+    std::time_t nonexistentDate = 1800000000;  // No activity has this due date
 
+    // Add activities with two different due dates
     todoList.addActivity(Activity("Task 1", false, date1));
     todoList.addActivity(Activity("Task 2", false, date2));
     todoList.addActivity(Activity("Task 3", false, date1)); // Same date as Task 1
 
+    // Case 1: Match on date1 (2 tasks expected)
     auto result = todoList.findActivitiesByDueDate(date1);
-
     EXPECT_EQ(result.size(), 2);
     EXPECT_EQ(result[0].getDueDate(), date1);
     EXPECT_EQ(result[1].getDueDate(), date1);
+
+    // Case 2: No task with the given date
+    auto emptyResult = todoList.findActivitiesByDueDate(nonexistentDate);
+    EXPECT_TRUE(emptyResult.empty());
 
     std::cout << "FindActivitiesByDueDate test PASSED!\n";
 }

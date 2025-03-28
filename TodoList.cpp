@@ -207,99 +207,40 @@ void TodoList::markActivityAsCompleted(const std::string& identifier) {
 }
 
 // Edits an existing activity (description, completion status, due date)
-void TodoList::editActivity(const std::string& identifier) {
-    if (identifier.empty()) {
-        std::cerr << "Error: Invalid input!\n";
-        return;
-    }
+bool TodoList::editActivity(const std::string& identifier, const std::string& newDescription, bool changeCompletionStatus, bool newCompleted, bool changeDueDate, std::time_t newDueDate) {
+    if (identifier.empty()) return false;
 
     bool isNumber = std::all_of(identifier.begin(), identifier.end(), ::isdigit);
-    size_t index = std::string::npos; // Default to an invalid index
+    size_t index = std::string::npos;
 
     if (isNumber) {
-        // Convert string to numeric index
         index = std::stoul(identifier);
-        if (index == 0 || index > activities.size()) {
-            std::cerr << "Error: Activity index is out of range!\n";
-            return;
-        }
-        index--; // Convert from 1-based to 0-based indexing
+        if (index == 0 || index > activities.size()) return false;
+        index--;
     } else {
-        // Search for activity by name
-        std::vector<size_t> matchingIndexes;
-        for (size_t i = 0; i < activities.size(); ++i) {
-            if (activities[i].getDescription() == identifier) {
-                matchingIndexes.push_back(i);
-            }
-        }
+        auto it = std::find_if(activities.begin(), activities.end(),
+                               [&](const Activity& a) { return a.getDescription() == identifier; });
 
-        if (matchingIndexes.empty()) {
-            std::cerr << "Error: No activity found with name '" << identifier << "'!\n";
-            return;
-        }
-
-        // If multiple activities have the same name, ask the user to choose
-        if (matchingIndexes.size() > 1) {
-            std::cout << "Multiple activities found with name '" << identifier << "'. Choose which one to edit:\n";
-            for (size_t i = 0; i < matchingIndexes.size(); ++i) {
-                std::cout << i + 1 << ". " << activities[matchingIndexes[i]].getDescription() << "\n";
-            }
-            size_t choice;
-            std::cout << "Enter the number: ";
-            std::cin >> choice;
-            std::cin.ignore();
-            if (choice == 0 || choice > matchingIndexes.size()) {
-                std::cerr << "Invalid choice. Operation canceled.\n";
-                return;
-            }
-            index = matchingIndexes[choice - 1];
-        } else {
-            index = matchingIndexes[0];
-        }
+        if (it == activities.end()) return false;
+        index = std::distance(activities.begin(), it);
     }
 
-    // Now index contains the valid activity index to edit
     Activity& activity = activities[index];
 
-    std::cout << "Editing Activity: " << activity.getDescription() << std::endl;
-
-    // Modify description
-    std::cout << "Enter new description (or press ENTER to keep current): ";
-    std::string newDescription;
-    std::getline(std::cin, newDescription);
     if (!newDescription.empty()) {
         activity.setDescription(newDescription);
     }
 
-    // Modify completion status
-    std::cout << "Is the activity completed? (y/n, press ENTER to keep current): ";
-    std::string completedInput;
-    std::getline(std::cin, completedInput);
-    if (!completedInput.empty()) {
-        if (completedInput == "y" || completedInput == "Y") {
-            activity.setCompleted(true);
-        } else if (completedInput == "n" || completedInput == "N") {
-            activity.setCompleted(false);
-        }
+    if (changeCompletionStatus) {
+        activity.setCompleted(newCompleted);
     }
 
-    // Modify due date
-    std::cout << "Enter new due date (YYYY-MM-DD HH:MM, press ENTER to keep current): ";
-    std::string dueDateStr;
-    std::getline(std::cin, dueDateStr);
-    if (!dueDateStr.empty()) {
-        std::tm tm = {};
-        std::istringstream ss(dueDateStr);
-        if (ss >> std::get_time(&tm, "%Y-%m-%d %H:%M")) {
-            std::time_t dueDate = std::mktime(&tm);
-            activity.setDueDate(dueDate);
-        } else {
-            std::cerr << "Error: Invalid date format! Keeping the old date.\n";
-        }
+    if (changeDueDate) {
+        activity.setDueDate(newDueDate);
     }
 
-    notifyObservers(); // Notify observers about the change
-    std::cout << "Activity updated successfully!\n";
+    notifyObservers();
+    return true;
 }
 
 std::string TodoList::toString() const {

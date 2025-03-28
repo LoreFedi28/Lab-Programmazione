@@ -38,8 +38,10 @@ public:
     void removeActivity(const std::string& identifier, bool skipConfirmation = false);
     // Marks an activity as completed by index or name and notifies observers
     void markActivityAsCompleted(const std::string& identifier);
+
     // Edits an activity's details (description, completion status, due date)
-    void editActivity(const std::string& identifier);
+    bool editActivity(const std::string& identifier, const std::string& newDescription, bool updateCompleted, bool newCompletedStatus, bool updateDueDate, std::time_t newDueDate);
+
     // Converts the TodoList activities to a formatted string
     [[nodiscard]] std::string toString() const;
 

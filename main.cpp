@@ -159,18 +159,58 @@ int main() {
                             break;
                         }
                         case 3: {
-                            bool validInput = false;
+                            std::cout << "Enter activity number or name to edit: ";
+                            std::getline(std::cin, identifier);
 
-                            while (!validInput) {
-                                std::cout << "Enter activity number or name to edit: ";
-                                std::getline(std::cin, identifier);
+                            std::string newDescription;
+                            std::string completedInput;
+                            std::string dueDateStr;
 
-                                try {
-                                    todoList.editActivity(identifier);
-                                    validInput = true;
-                                } catch (const std::exception& e) {
-                                    std::cerr << "Error: " << e.what() << "\nPlease try again.\n";
+                            bool updateCompleted = false;
+                            bool newCompletedStatus = false;
+                            bool updateDueDate = false;
+                            std::time_t newDueDate = 0;
+
+                            // Ask for new description
+                            std::cout << "Enter new description (leave empty to keep current): ";
+                            std::getline(std::cin, newDescription);
+
+                            // Ask for completion status
+                            std::cout << "Change completion status? (y/n, leave empty to skip): ";
+                            std::getline(std::cin, completedInput);
+                            if (!completedInput.empty()) {
+                                updateCompleted = true;
+                                newCompletedStatus = (completedInput == "y" || completedInput == "Y");
+                            }
+
+                            // Ask for due date
+                            std::cout << "Change due date? (YYYY-MM-DD HH:MM, leave empty to skip): ";
+                            std::getline(std::cin, dueDateStr);
+                            if (!dueDateStr.empty()) {
+                                std::tm tm = {};
+                                std::istringstream ss(dueDateStr);
+                                if (ss >> std::get_time(&tm, "%Y-%m-%d %H:%M")) {
+                                    tm.tm_isdst = -1;
+                                    newDueDate = std::mktime(&tm);
+                                    updateDueDate = true;
+                                } else {
+                                    std::cerr << "Invalid date format. Skipping due date update.\n";
                                 }
+                            }
+
+                            bool success = todoList.editActivity(
+                                identifier,
+                                newDescription,
+                                updateCompleted,
+                                newCompletedStatus,
+                                updateDueDate,
+                                newDueDate
+                            );
+
+                            if (success) {
+                                std::cout << "Activity edited successfully.\n";
+                            } else {
+                                std::cerr << "Failed to edit activity.\n";
                             }
                             break;
                         }

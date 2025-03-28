@@ -2,7 +2,6 @@
 #define SUBJECT_H
 
 #include "Observer.h"
-#include <vector>
 
 class Subject {
 public:
